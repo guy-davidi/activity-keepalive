@@ -1,0 +1,30 @@
+# .github/workflows/keepalive.yml
+name: keep GitHub activity warm
+
+on:
+  schedule:
+    # Every day at 05:17 Asia/Jerusalem (which is 02:17 UTC)
+    # Actions cron is in UTC
+    - cron: '17 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  heartbeat:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure committer
+        run: |
+          git config user.name "Guy Davidi (auto)"
+          # Use your GitHub noreply email or a verified email on your account:
+          # Settings → Emails shows the correct address to use.
+          git config user.email "<YOUR_NOREPLY_OR_VERIFIED_EMAIL>"
+
+      - name: Make empty commit
+        run: |
+          git commit --allow-empty -m "chore: keepalive $(date -u +%F:%T)Z"
+          git push
