@@ -1,11 +1,8 @@
-# .github/workflows/keepalive.yml
 name: keep GitHub activity warm
 
 on:
   schedule:
-    # Every day at 05:17 Asia/Jerusalem (which is 02:17 UTC)
-    # Actions cron is in UTC
-    - cron: '17 2 * * *'
+    - cron: '40 8 * * *'   # 11:40 Asia/Jerusalem == 08:40 UTC
   workflow_dispatch:
 
 permissions:
@@ -20,11 +17,25 @@ jobs:
       - name: Configure committer
         run: |
           git config user.name "Guy Davidi (auto)"
-          # Use your GitHub noreply email or a verified email on your account:
-          # Settings → Emails shows the correct address to use.
+          # Use your GitHub noreply or any verified email so the commit counts
           git config user.email "<YOUR_NOREPLY_OR_VERIFIED_EMAIL>"
 
       - name: Make empty commit
         run: |
           git commit --allow-empty -m "chore: keepalive $(date -u +%F:%T)Z"
           git push
+
+      - name: Send email notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "GitHub keepalive ✅ ($(date +'%Y-%m-%d %H:%M %Z'))"
+          to: "guydav1111@gmail.com"
+          from: "Guy's GitHub Bot <guydav1111@gmail.com>"
+          body: |
+            Keepalive commit pushed to ${{ github.repository }} on ${{ github.ref_name }}.
+            Run: ${{ github.run_id }} • SHA: ${{ github.sha }}
