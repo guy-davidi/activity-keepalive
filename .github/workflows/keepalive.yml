@@ -37,15 +37,16 @@ jobs:
       - name: Configure committer
         run: |
           git config user.name "Guy Davidi (auto)"
-          # Replace with your GitHub noreply or any verified email
           git config user.email "guy-davidi@users.noreply.github.com"
 
-      - name: Make empty commit
+      - name: Make 20 empty commits
         run: |
           git checkout "${DEFAULT_BRANCH}"
           git pull --rebase origin "${DEFAULT_BRANCH}"
-          git commit --allow-empty -m "chore: keepalive $(date -u +%F:%T)Z" || echo "No commit created?"
+          for i in $(seq 1 20); do
+            git commit --allow-empty -m "chore: keepalive $i $(date -u +%F:%T)Z"
+          done
 
-      - name: Push
+      - name: Push all commits
         run: |
           git push origin HEAD:"${DEFAULT_BRANCH}"
