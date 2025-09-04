@@ -1,3 +1,4 @@
+# .github/workflows/keepalive.yml
 name: keep GitHub activity warm
 
 on:
@@ -11,19 +12,50 @@ permissions:
 jobs:
   heartbeat:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+    env:
+      # GitHub normally provides this; if it is empty (rare), we compute it
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
 
-      - name: Configure committer
+    steps:
+      - name: Checkout default branch (auto-detected)
+        uses: actions/checkout@v4
+        with:
+          # fall back to 'main' if env var empty; we’ll re-detect below just in case
+          ref: ${{ env.DEFAULT_BRANCH || 'main' }}
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Resolve true default branch (fallback)
+        id: def
+        run: |
+          set -euo pipefail
+          git config --global safe.directory $(pwd)
+          # If DEFAULT_BRANCH is empty or wrong, derive from origin/HEAD
+          if [ -z "${DEFAULT_BRANCH:-}" ] || ! git rev-parse --verify "origin/${DEFAULT_BRANCH}" >/dev/null 2>&1; then
+            DB=$(git remote show origin | awk '/HEAD branch:/ {print $NF}')
+            echo "DEFAULT_BRANCH=$DB" >> $GITHUB_ENV
+          else
+            echo "DEFAULT_BRANCH=${DEFAULT_BRANCH}" >> $GITHUB_ENV
+          fi
+          echo "Using default branch: ${DEFAULT_BRANCH:-$DB}"
+
+      - name: Switch to default branch
+        run: |
+          git checkout "${DEFAULT_BRANCH}"
+          git pull --rebase origin "${DEFAULT_BRANCH}"
+
+      - name: Configure committer (use your GitHub noreply or verified email)
         run: |
           git config user.name "Guy Davidi (auto)"
-          # Use your GitHub noreply or any verified email so the commit counts
           git config user.email "<YOUR_NOREPLY_OR_VERIFIED_EMAIL>"
 
       - name: Make empty commit
         run: |
           git commit --allow-empty -m "chore: keepalive $(date -u +%F:%T)Z"
-          git push
+
+      - name: Push
+        run: |
+          git push origin HEAD:"${DEFAULT_BRANCH}"
 
       - name: Send email notification
         uses: dawidd6/action-send-mail@v3
@@ -37,5 +69,5 @@ jobs:
           to: "guydav1111@gmail.com"
           from: "Guy's GitHub Bot <guydav1111@gmail.com>"
           body: |
-            Keepalive commit pushed to ${{ github.repository }} on ${{ github.ref_name }}.
+            Keepalive commit pushed to ${{ github.repository }} on branch ${{ env.DEFAULT_BRANCH }}.
             Run: ${{ github.run_id }} • SHA: ${{ github.sha }}
