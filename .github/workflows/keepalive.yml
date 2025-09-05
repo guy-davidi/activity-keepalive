@@ -3,7 +3,7 @@ name: keep GitHub activity warm
 
 on:
   schedule:
-    - cron: '40 8 * * *'   # 11:40 Israel time == 08:40 UTC
+    - cron: '50 7 * * *'   # 11:40 Israel time == 08:40 UTC
   workflow_dispatch:
 
 permissions:
