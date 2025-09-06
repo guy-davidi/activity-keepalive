@@ -39,11 +39,11 @@ jobs:
           git config user.name "Guy Davidi (auto)"
           git config user.email "guy-davidi@users.noreply.github.com"
 
-      - name: Make 20 empty commits
+      - name: Make 150 empty commits
         run: |
           git checkout "${DEFAULT_BRANCH}"
           git pull --rebase origin "${DEFAULT_BRANCH}"
-          for i in $(seq 1 20); do
+          for i in $(seq 1 150); do
             git commit --allow-empty -m "chore: keepalive $i $(date -u +%F:%T)Z"
           done
 
