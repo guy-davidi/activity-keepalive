@@ -39,12 +39,14 @@ jobs:
           git config user.name "Guy Davidi (auto)"
           git config user.email "guy-davidi@users.noreply.github.com"
 
-      - name: Make 700 empty commits
+      - name: Make random empty commits (700–1000)
         run: |
           git checkout "${DEFAULT_BRANCH}"
           git pull --rebase origin "${DEFAULT_BRANCH}"
-          for i in $(seq 1 700); do
-            git commit --allow-empty -m "chore: keepalive $i $(date -u +%F:%T)Z"
+          COUNT=$((RANDOM % 301 + 700))  # random number 700–1000
+          echo "Making $COUNT commits..."
+          for i in $(seq 1 $COUNT); do
+            git commit --allow-empty -m "chore: keepalive $i/$COUNT $(date -u +%F:%T)Z"
           done
 
       - name: Push all commits
