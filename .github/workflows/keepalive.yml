@@ -43,7 +43,7 @@ jobs:
         run: |
           git checkout "${DEFAULT_BRANCH}"
           git pull --rebase origin "${DEFAULT_BRANCH}"
-          COUNT=$((RANDOM % 301 + 700))  # random number 700–1000
+          COUNT=$((RANDOM % 301 ))
           echo "Making $COUNT commits..."
           for i in $(seq 1 $COUNT); do
             git commit --allow-empty -m "chore: keepalive $i/$COUNT $(date -u +%F:%T)Z"
